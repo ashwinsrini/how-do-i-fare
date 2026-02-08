@@ -4,13 +4,13 @@ FROM node:22-alpine AS build
 WORKDIR /app
 
 # Copy workspace root manifests
-COPY package.json package-lock.json ./
+COPY package.json ./
 
 # Copy workspace package manifests
 COPY packages/shared/package.json packages/shared/
 COPY apps/web/package.json apps/web/
 
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY packages/shared/ packages/shared/

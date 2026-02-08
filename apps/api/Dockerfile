@@ -7,14 +7,14 @@ RUN apk add --no-cache python3 make g++
 WORKDIR /app
 
 # Copy workspace root manifests
-COPY package.json package-lock.json ./
+COPY package.json ./
 
-# Copy workspace package manifests (needed for npm ci --workspaces)
+# Copy workspace package manifests
 COPY packages/shared/package.json packages/shared/
 COPY apps/api/package.json apps/api/
 
-# Install all deps (workspaces need full install, then prune)
-RUN npm ci
+# Install all deps
+RUN npm install
 
 # Copy source code
 COPY packages/shared/ packages/shared/
