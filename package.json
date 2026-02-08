@@ -1,0 +1,22 @@
+{
+  "name": "dev-leaderboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Peer leaderboards based on Jira and GitHub metrics",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev --workspace=@dev-leaderboard/api",
+    "dev:web": "npm run dev --workspace=@dev-leaderboard/web",
+    "dev": "npm run dev:api & npm run dev:web",
+    "build:web": "npm run build --workspace=@dev-leaderboard/web",
+    "db:migrate": "npm run db:migrate --workspace=@dev-leaderboard/api",
+    "db:migrate:undo": "npm run db:migrate:undo --workspace=@dev-leaderboard/api",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "author": "",
+  "license": "ISC"
+}
