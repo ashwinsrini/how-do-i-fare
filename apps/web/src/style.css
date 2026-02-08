@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* PrimeVue Toast — prevent Tailwind preflight from breaking enter animation */
+.p-toast-message {
+  transition: none !important;
+}
+.p-toast-message-enter-active {
+  transition: opacity 300ms, transform 300ms !important;
+}
+.p-toast-message-enter-from {
+  opacity: 0 !important;
+  transform: translateY(-100%) !important;
+}
+.p-toast-message-enter-to {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
 /* Custom base styles */
 body {
   margin: 0;
