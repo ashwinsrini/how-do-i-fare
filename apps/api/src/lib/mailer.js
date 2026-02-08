@@ -31,9 +31,13 @@ export async function sendOtp(email, code) {
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; background: #ffffff;">
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 32px 24px; text-align: center; border-radius: 12px 12px 0 0;">
-          <div style="display: inline-block; margin-bottom: 12px;">
-            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIwLjIiLz48cmVjdCB4PSI3IiB5PSIxNiIgd2lkdGg9IjQiIGhlaWdodD0iMTAiIHJ4PSIxIiBmaWxsPSJ3aGl0ZSIvPjxyZWN0IHg9IjE0IiB5PSIxMSIgd2lkdGg9IjQiIGhlaWdodD0iMTUiIHJ4PSIxIiBmaWxsPSJ3aGl0ZSIvPjxyZWN0IHg9IjIxIiB5PSI2IiB3aWR0aD0iNCIgaGVpZ2h0PSIyMCIgcng9IjEiIGZpbGw9IndoaXRlIi8+PC9zdmc+" alt="TeamMetrics" width="36" height="36" style="vertical-align: middle;" />
-          </div>
+          <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 12px auto;">
+            <tr>
+              <td style="background: rgba(255,255,255,0.2); border-radius: 8px; width: 36px; height: 36px; text-align: center; vertical-align: middle;">
+                <span style="font-size: 18px; line-height: 36px;">&#x2581;&#x2583;&#x2587;</span>
+              </td>
+            </tr>
+          </table>
           <h1 style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: -0.3px;">TeamMetrics</h1>
         </div>
 
