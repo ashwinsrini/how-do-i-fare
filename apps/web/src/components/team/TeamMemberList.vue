@@ -25,7 +25,7 @@ const emit = defineEmits(['edit', 'delete', 'view']);
           />
           <div
             v-else
-            class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-sm font-semibold"
+            class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center text-sm font-semibold"
           >
             {{ (data.displayName || '?').charAt(0).toUpperCase() }}
           </div>
@@ -37,14 +37,14 @@ const emit = defineEmits(['edit', 'delete', 'view']);
     <Column header="Jira" style="min-width: 10rem">
       <template #body="{ data }">
         <Tag v-if="data.jiraAccountId" severity="info" :value="data.jiraDisplayName || data.jiraAccountId" />
-        <span v-else class="text-gray-400 text-sm">Not linked</span>
+        <span v-else class="text-surface-400 text-sm">Not linked</span>
       </template>
     </Column>
 
     <Column header="GitHub" style="min-width: 10rem">
       <template #body="{ data }">
         <Tag v-if="data.githubLogin" severity="success" :value="data.githubLogin" />
-        <span v-else class="text-gray-400 text-sm">Not linked</span>
+        <span v-else class="text-surface-400 text-sm">Not linked</span>
       </template>
     </Column>
 
@@ -59,7 +59,7 @@ const emit = defineEmits(['edit', 'delete', 'view']);
     </Column>
 
     <template #empty>
-      <div class="flex flex-col items-center justify-center py-8 text-gray-500">
+      <div class="flex flex-col items-center justify-center py-8 text-surface-400">
         <i class="pi pi-users text-4xl mb-2"></i>
         <p>No team members yet. Add your first member to get started.</p>
       </div>

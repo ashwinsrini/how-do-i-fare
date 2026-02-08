@@ -102,7 +102,7 @@ const chartOptions = {
 
 <template>
   <div>
-    <div v-if="data.length === 0" class="flex items-center justify-center py-12 text-gray-400">
+    <div v-if="data.length === 0" class="flex items-center justify-center py-12 text-surface-400">
       <p>No ticket data available for chart.</p>
     </div>
     <div v-else class="h-80">

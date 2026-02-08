@@ -55,7 +55,7 @@ function fmtHours(val) {
   <div>
     <div class="flex flex-wrap items-end gap-4 mb-6">
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium text-gray-700">Members</label>
+        <label class="tm-label">Members</label>
         <MultiSelect
           v-model="selectedIds"
           :options="memberOptions"
@@ -75,11 +75,11 @@ function fmtHours(val) {
       <table class="w-full text-sm">
         <thead>
           <tr class="border-b">
-            <th class="text-left py-2 px-3 text-gray-600">Metric</th>
+            <th class="text-left py-2 px-3 text-surface-500">Metric</th>
             <th
               v-for="p in teamStore.comparison"
               :key="p.member.id"
-              class="text-center py-2 px-3 text-gray-600"
+              class="text-center py-2 px-3 text-surface-500"
             >
               <div class="flex flex-col items-center gap-1">
                 <img
@@ -94,64 +94,64 @@ function fmtHours(val) {
         </thead>
         <tbody>
           <!-- Jira Section -->
-          <tr class="bg-gray-50">
-            <td colspan="100" class="py-2 px-3 font-semibold text-gray-700">Jira</td>
+          <tr class="bg-surface-50">
+            <td colspan="100" class="py-2 px-3 font-semibold text-surface-700">Jira</td>
           </tr>
           <tr class="border-b">
-            <td class="py-2 px-3 text-gray-600">Story Points</td>
+            <td class="py-2 px-3 text-surface-500">Story Points</td>
             <td v-for="p in teamStore.comparison" :key="'sp-'+p.member.id" class="text-center py-2 px-3 font-medium">
               {{ p.jira ? fmt(p.jira.totalStoryPoints) : '-' }}
             </td>
           </tr>
           <tr class="border-b">
-            <td class="py-2 px-3 text-gray-600">Total Tickets</td>
+            <td class="py-2 px-3 text-surface-500">Total Tickets</td>
             <td v-for="p in teamStore.comparison" :key="'tt-'+p.member.id" class="text-center py-2 px-3 font-medium">
               {{ p.jira ? fmt(p.jira.totalTickets) : '-' }}
             </td>
           </tr>
           <tr class="border-b">
-            <td class="py-2 px-3 text-gray-600">Done</td>
+            <td class="py-2 px-3 text-surface-500">Done</td>
             <td v-for="p in teamStore.comparison" :key="'td-'+p.member.id" class="text-center py-2 px-3 font-medium text-green-600">
               {{ p.jira ? fmt(p.jira.ticketsDone) : '-' }}
             </td>
           </tr>
 
           <!-- GitHub Section -->
-          <tr class="bg-gray-50">
-            <td colspan="100" class="py-2 px-3 font-semibold text-gray-700">GitHub</td>
+          <tr class="bg-surface-50">
+            <td colspan="100" class="py-2 px-3 font-semibold text-surface-700">GitHub</td>
           </tr>
           <tr class="border-b">
-            <td class="py-2 px-3 text-gray-600">PRs Raised</td>
+            <td class="py-2 px-3 text-surface-500">PRs Raised</td>
             <td v-for="p in teamStore.comparison" :key="'pr-'+p.member.id" class="text-center py-2 px-3 font-medium">
               {{ p.github ? fmt(p.github.prsRaised) : '-' }}
             </td>
           </tr>
           <tr class="border-b">
-            <td class="py-2 px-3 text-gray-600">PRs Merged</td>
+            <td class="py-2 px-3 text-surface-500">PRs Merged</td>
             <td v-for="p in teamStore.comparison" :key="'pm-'+p.member.id" class="text-center py-2 px-3 font-medium">
               {{ p.github ? fmt(p.github.prsMerged) : '-' }}
             </td>
           </tr>
           <tr class="border-b">
-            <td class="py-2 px-3 text-gray-600">Merge Rate</td>
+            <td class="py-2 px-3 text-surface-500">Merge Rate</td>
             <td v-for="p in teamStore.comparison" :key="'mr-'+p.member.id" class="text-center py-2 px-3 font-medium">
               {{ p.github ? `${p.github.mergeRate}%` : '-' }}
             </td>
           </tr>
           <tr class="border-b">
-            <td class="py-2 px-3 text-gray-600">Reviews Given</td>
+            <td class="py-2 px-3 text-surface-500">Reviews Given</td>
             <td v-for="p in teamStore.comparison" :key="'rv-'+p.member.id" class="text-center py-2 px-3 font-medium">
               {{ p.github ? fmt(p.github.reviewsGiven) : '-' }}
             </td>
           </tr>
           <tr class="border-b">
-            <td class="py-2 px-3 text-gray-600">Lines Added</td>
+            <td class="py-2 px-3 text-surface-500">Lines Added</td>
             <td v-for="p in teamStore.comparison" :key="'la-'+p.member.id" class="text-center py-2 px-3 font-medium text-green-600">
               {{ p.github ? `+${fmt(p.github.linesAdded)}` : '-' }}
             </td>
           </tr>
           <tr class="border-b">
-            <td class="py-2 px-3 text-gray-600">Avg Cycle Time</td>
+            <td class="py-2 px-3 text-surface-500">Avg Cycle Time</td>
             <td v-for="p in teamStore.comparison" :key="'ct-'+p.member.id" class="text-center py-2 px-3 font-medium">
               {{ p.github ? fmtHours(p.github.avgHoursTotalCycleTime) : '-' }}
             </td>
@@ -160,7 +160,7 @@ function fmtHours(val) {
       </table>
     </div>
 
-    <div v-else-if="!teamStore.loading" class="text-center text-gray-500 py-8">
+    <div v-else-if="!teamStore.loading" class="text-center text-surface-400 py-8">
       <i class="pi pi-arrows-h text-4xl mb-2"></i>
       <p>Select members and click Compare to see side-by-side metrics.</p>
     </div>

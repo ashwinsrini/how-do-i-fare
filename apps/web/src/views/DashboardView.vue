@@ -52,7 +52,6 @@ const lastGithubSync = computed(() => {
 
 const nextSyncEstimate = computed(() => {
   const interval = syncStore.settings?.syncIntervalHours || 6;
-  // Find the most recent completed sync
   const jiraTime = syncStore.status?.lastCompleted?.jira?.completedAt;
   const githubTime = syncStore.status?.lastCompleted?.github?.completedAt;
 
@@ -81,22 +80,24 @@ function goToSetup() {
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-gray-800 mb-6">Dashboard</h1>
+    <h1 class="tm-page-title mb-6">Dashboard</h1>
 
     <!-- Loading state -->
     <div v-if="loading" class="flex items-center justify-center py-16">
-      <i class="pi pi-spin pi-spinner text-3xl text-gray-400"></i>
+      <i class="pi pi-spin pi-spinner text-3xl text-surface-300"></i>
     </div>
 
     <!-- Getting started CTA when no credentials -->
     <div
       v-else-if="!hasCredentials"
-      class="bg-white rounded-lg shadow-sm p-8 text-center max-w-lg mx-auto mt-12"
+      class="tm-card p-10 text-center max-w-lg mx-auto mt-8"
     >
-      <i class="pi pi-flag text-5xl text-blue-500 mb-4"></i>
-      <h2 class="text-xl font-semibold text-gray-800 mb-2">Welcome!</h2>
-      <p class="text-gray-600 mb-6">
-        Set up your Jira and GitHub credentials to get started tracking your team's performance.
+      <div class="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto mb-5">
+        <i class="pi pi-flag text-2xl text-emerald-600"></i>
+      </div>
+      <h2 class="text-xl font-bold text-surface-800 mb-2">Welcome to TeamMetrics</h2>
+      <p class="text-surface-500 mb-6 max-w-sm mx-auto">
+        Connect your Jira and GitHub accounts to start tracking your team's engineering performance.
       </p>
       <Button
         label="Get Started"
@@ -108,61 +109,75 @@ function goToSetup() {
     <!-- Dashboard content when credentials exist -->
     <div v-else>
       <!-- Summary cards row -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <!-- Jira Integration Status -->
-        <div class="bg-white rounded-lg shadow-sm p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <!-- Jira -->
+        <div class="tm-card p-5">
           <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Jira</h3>
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                <i class="pi pi-server text-blue-600 text-sm"></i>
+              </div>
+              <span class="tm-label">Jira</span>
+            </div>
             <Tag
               :value="jiraActive > 0 ? 'Active' : 'Inactive'"
               :severity="jiraActive > 0 ? 'success' : 'warn'"
             />
           </div>
-          <p class="text-2xl font-bold text-gray-800">{{ jiraCount }}</p>
-          <p class="text-sm text-gray-500 mt-1">
+          <p class="tm-stat-value text-surface-900">{{ jiraCount }}</p>
+          <p class="tm-stat-label">
             {{ jiraActive }} active credential{{ jiraActive !== 1 ? 's' : '' }}
           </p>
         </div>
 
-        <!-- GitHub Integration Status -->
-        <div class="bg-white rounded-lg shadow-sm p-6">
+        <!-- GitHub -->
+        <div class="tm-card p-5">
           <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">GitHub</h3>
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-surface-100 flex items-center justify-center">
+                <i class="pi pi-github text-surface-700 text-sm"></i>
+              </div>
+              <span class="tm-label">GitHub</span>
+            </div>
             <Tag
               :value="githubActive > 0 ? 'Active' : 'Inactive'"
               :severity="githubActive > 0 ? 'success' : 'warn'"
             />
           </div>
-          <p class="text-2xl font-bold text-gray-800">{{ githubCount }}</p>
-          <p class="text-sm text-gray-500 mt-1">
+          <p class="tm-stat-value text-surface-900">{{ githubCount }}</p>
+          <p class="tm-stat-label">
             {{ githubActive }} active credential{{ githubActive !== 1 ? 's' : '' }}
           </p>
         </div>
 
-        <!-- Last Sync Time -->
-        <div class="bg-white rounded-lg shadow-sm p-6">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Last Sync</h3>
-            <i class="pi pi-clock text-gray-400"></i>
+        <!-- Last Sync -->
+        <div class="tm-card p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <i class="pi pi-clock text-emerald-600 text-sm"></i>
+            </div>
+            <span class="tm-label">Last Sync</span>
           </div>
-          <div class="space-y-1">
-            <p class="text-sm text-gray-700">
-              <span class="font-medium">Jira:</span> {{ lastJiraSync }}
+          <div class="space-y-1.5">
+            <p class="text-sm text-surface-600">
+              <span class="font-semibold text-surface-800">Jira:</span> {{ lastJiraSync }}
             </p>
-            <p class="text-sm text-gray-700">
-              <span class="font-medium">GitHub:</span> {{ lastGithubSync }}
+            <p class="text-sm text-surface-600">
+              <span class="font-semibold text-surface-800">GitHub:</span> {{ lastGithubSync }}
             </p>
           </div>
         </div>
 
-        <!-- Next Sync Time -->
-        <div class="bg-white rounded-lg shadow-sm p-6">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Next Sync</h3>
-            <i class="pi pi-calendar text-gray-400"></i>
+        <!-- Next Sync -->
+        <div class="tm-card p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+              <i class="pi pi-calendar text-amber-600 text-sm"></i>
+            </div>
+            <span class="tm-label">Next Sync</span>
           </div>
-          <p class="text-lg font-semibold text-gray-800">{{ nextSyncEstimate }}</p>
-          <p class="text-sm text-gray-500 mt-1">
+          <p class="text-base font-semibold text-surface-800">{{ nextSyncEstimate }}</p>
+          <p class="tm-stat-label">
             Interval: {{ syncStore.settings?.syncIntervalHours || 6 }}h
           </p>
         </div>
@@ -172,28 +187,28 @@ function goToSetup() {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <router-link
           to="/jira"
-          class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow group flex items-center justify-between"
+          class="tm-card-hover p-5 group flex items-center justify-between"
         >
           <div>
-            <h3 class="text-lg font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
-              View Jira Leaderboard
+            <h3 class="text-base font-semibold text-surface-800 group-hover:text-blue-600 transition-colors">
+              Jira Leaderboard
             </h3>
-            <p class="text-sm text-gray-500 mt-1">Story points, tickets by type and status</p>
+            <p class="text-sm text-surface-400 mt-0.5">Story points, tickets by type and status</p>
           </div>
-          <i class="pi pi-arrow-right text-gray-400 group-hover:text-blue-500 transition-colors text-xl"></i>
+          <i class="pi pi-arrow-right text-surface-300 group-hover:text-blue-500 transition-colors"></i>
         </router-link>
 
         <router-link
           to="/github"
-          class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow group flex items-center justify-between"
+          class="tm-card-hover p-5 group flex items-center justify-between"
         >
           <div>
-            <h3 class="text-lg font-semibold text-gray-800 group-hover:text-purple-600 transition-colors">
-              View GitHub Leaderboard
+            <h3 class="text-base font-semibold text-surface-800 group-hover:text-purple-600 transition-colors">
+              GitHub Leaderboard
             </h3>
-            <p class="text-sm text-gray-500 mt-1">Pull requests, code reviews, lines changed</p>
+            <p class="text-sm text-surface-400 mt-0.5">Pull requests, code reviews, lines changed</p>
           </div>
-          <i class="pi pi-arrow-right text-gray-400 group-hover:text-purple-500 transition-colors text-xl"></i>
+          <i class="pi pi-arrow-right text-surface-300 group-hover:text-purple-500 transition-colors"></i>
         </router-link>
       </div>
     </div>

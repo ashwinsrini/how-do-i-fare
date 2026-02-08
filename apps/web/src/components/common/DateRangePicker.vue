@@ -26,7 +26,7 @@ function onEndDateChange(value) {
 <template>
   <div class="flex items-center gap-4 flex-wrap">
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-gray-700">Start Date</label>
+      <label class="tm-label">Start Date</label>
       <DatePicker
         :modelValue="startDate"
         @update:modelValue="onStartDateChange"
@@ -39,7 +39,7 @@ function onEndDateChange(value) {
     </div>
 
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-gray-700">End Date</label>
+      <label class="tm-label">End Date</label>
       <DatePicker
         :modelValue="endDate"
         @update:modelValue="onEndDateChange"

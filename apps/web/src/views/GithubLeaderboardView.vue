@@ -125,14 +125,14 @@ const repoOptions = computed(() =>
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-gray-800 mb-6">GitHub Leaderboard</h1>
+    <h1 class="tm-page-title mb-6">GitHub Leaderboard</h1>
 
     <!-- Filter bar -->
-    <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+    <div class="tm-filter-bar">
       <div class="flex flex-wrap items-end gap-4">
         <!-- Credential selector -->
         <div class="flex flex-col gap-1">
-          <label class="text-sm font-medium text-gray-700">Credential</label>
+          <label class="tm-label">Credential</label>
           <Select
             v-model="selectedCredential"
             :options="credentialOptions"
@@ -145,7 +145,7 @@ const repoOptions = computed(() =>
 
         <!-- Organization selector -->
         <div class="flex flex-col gap-1">
-          <label class="text-sm font-medium text-gray-700">Organization</label>
+          <label class="tm-label">Organization</label>
           <Select
             v-model="selectedOrg"
             :options="orgOptions"
@@ -159,7 +159,7 @@ const repoOptions = computed(() =>
 
         <!-- Repository multi-select -->
         <div class="flex flex-col gap-1">
-          <label class="text-sm font-medium text-gray-700">Repositories</label>
+          <label class="tm-label">Repositories</label>
           <MultiSelect
             v-model="selectedRepos"
             :options="repoOptions"

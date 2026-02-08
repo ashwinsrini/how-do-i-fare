@@ -201,14 +201,14 @@ const statusOptions = computed(() => jiraStore.statuses || []);
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-gray-800 mb-6">Jira Leaderboard</h1>
+    <h1 class="tm-page-title mb-6">Jira Leaderboard</h1>
 
     <!-- Filter bar -->
-    <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+    <div class="tm-filter-bar">
       <div class="flex flex-wrap items-end gap-4">
         <!-- Credential selector -->
         <div class="flex flex-col gap-1">
-          <label class="text-sm font-medium text-gray-700">Credential</label>
+          <label class="tm-label">Credential</label>
           <Select
             v-model="selectedCredential"
             :options="credentialOptions"
@@ -221,7 +221,7 @@ const statusOptions = computed(() => jiraStore.statuses || []);
 
         <!-- Project selector -->
         <div class="flex flex-col gap-1">
-          <label class="text-sm font-medium text-gray-700">Project</label>
+          <label class="tm-label">Project</label>
           <Select
             v-model="selectedProject"
             :options="projectOptions"
@@ -235,7 +235,7 @@ const statusOptions = computed(() => jiraStore.statuses || []);
 
         <!-- Sprint selector -->
         <div class="flex flex-col gap-1">
-          <label class="text-sm font-medium text-gray-700">Sprint</label>
+          <label class="tm-label">Sprint</label>
           <Select
             v-model="selectedSprint"
             :options="sprintOptions"
@@ -256,7 +256,7 @@ const statusOptions = computed(() => jiraStore.statuses || []);
 
         <!-- Status multi-select -->
         <div class="flex flex-col gap-1">
-          <label class="text-sm font-medium text-gray-700">Statuses</label>
+          <label class="tm-label">Statuses</label>
           <MultiSelect
             v-model="selectedStatuses"
             :options="statusOptions"
@@ -313,14 +313,14 @@ const statusOptions = computed(() => jiraStore.statuses || []);
                 removableSort
               >
                 <template #empty>
-                  <div class="text-center py-8 text-gray-500">
+                  <div class="text-center py-8 text-surface-400">
                     No ticket type data available.
                   </div>
                 </template>
 
                 <Column header="#" style="width: 4rem">
                   <template #body="{ index }">
-                    <span class="font-semibold text-gray-500">{{ index + 1 }}</span>
+                    <span class="font-semibold text-surface-400">{{ index + 1 }}</span>
                   </template>
                 </Column>
 
@@ -377,14 +377,14 @@ const statusOptions = computed(() => jiraStore.statuses || []);
                 removableSort
               >
                 <template #empty>
-                  <div class="text-center py-8 text-gray-500">
+                  <div class="text-center py-8 text-surface-400">
                     No ticket status data available.
                   </div>
                 </template>
 
                 <Column header="#" style="width: 4rem">
                   <template #body="{ index }">
-                    <span class="font-semibold text-gray-500">{{ index + 1 }}</span>
+                    <span class="font-semibold text-surface-400">{{ index + 1 }}</span>
                   </template>
                 </Column>
 
@@ -413,7 +413,7 @@ const statusOptions = computed(() => jiraStore.statuses || []);
                     <span
                       class="font-medium"
                       :class="{
-                        'text-gray-600': cat === 'To Do',
+                        'text-surface-500': cat === 'To Do',
                         'text-yellow-600': cat === 'In Progress',
                         'text-green-600': cat === 'Done',
                       }"

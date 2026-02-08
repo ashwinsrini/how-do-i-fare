@@ -101,15 +101,15 @@ const chartOptions = {
   <div>
     <div class="flex flex-wrap items-end gap-4 mb-6">
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium text-gray-700">Metric</label>
+        <label class="tm-label">Metric</label>
         <Select v-model="selectedMetric" :options="metricOptions" optionLabel="label" optionValue="value" class="w-40" />
       </div>
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium text-gray-700">Interval</label>
+        <label class="tm-label">Interval</label>
         <Select v-model="selectedInterval" :options="intervalOptions" optionLabel="label" optionValue="value" class="w-32" />
       </div>
       <div class="flex flex-col gap-1" v-if="selectedMetric !== 'story-points'">
-        <label class="text-sm font-medium text-gray-700">Credential</label>
+        <label class="tm-label">Credential</label>
         <Select
           v-model="selectedCredential"
           :options="credentialOptions"
@@ -124,11 +124,11 @@ const chartOptions = {
       <Button label="Load" icon="pi pi-chart-line" :loading="teamStore.loading" @click="loadTrends" />
     </div>
 
-    <div v-if="chartData" class="bg-white rounded-lg shadow-sm p-4" style="height: 400px">
+    <div v-if="chartData" class="tm-card p-4" style="height: 400px">
       <Chart type="line" :data="chartData" :options="chartOptions" class="h-full" />
     </div>
 
-    <div v-else-if="!teamStore.loading" class="flex flex-col items-center justify-center py-12 text-gray-500">
+    <div v-else-if="!teamStore.loading" class="flex flex-col items-center justify-center py-12 text-surface-400">
       <i class="pi pi-chart-line text-4xl mb-2"></i>
       <p>Select a metric and click Load to view trends over time.</p>
     </div>

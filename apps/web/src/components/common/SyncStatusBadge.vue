@@ -53,23 +53,23 @@ const timeAgo = computed(() => {
     <template v-if="isSyncing">
       <span class="relative flex h-2.5 w-2.5">
         <span
-          class="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-75"
+          class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"
         ></span>
-        <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-indigo-500"></span>
+        <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
       </span>
-      <span class="text-indigo-600 font-medium">Syncing...</span>
+      <span class="text-emerald-600 font-medium">Syncing...</span>
     </template>
 
     <!-- Last sync exists -->
     <template v-else-if="lastSyncTime">
       <span class="inline-flex h-2.5 w-2.5 rounded-full bg-green-500"></span>
-      <span class="text-gray-600">Last sync: {{ timeAgo }}</span>
+      <span class="text-surface-500">Last sync: {{ timeAgo }}</span>
     </template>
 
     <!-- No sync yet -->
     <template v-else>
-      <span class="inline-flex h-2.5 w-2.5 rounded-full bg-gray-400"></span>
-      <span class="text-gray-500">Not synced</span>
+      <span class="inline-flex h-2.5 w-2.5 rounded-full bg-surface-300"></span>
+      <span class="text-surface-400">Not synced</span>
     </template>
   </div>
 </template>

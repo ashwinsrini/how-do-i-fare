@@ -63,7 +63,7 @@ const skeletonRows = Array.from({ length: 5 }, (_, i) => ({ _skeletonId: i }));
       <!-- Rank column -->
       <Column header="#" style="width: 4rem">
         <template #body="{ index }">
-          <span class="font-semibold text-gray-500">{{ index + 1 }}</span>
+          <span class="font-semibold text-surface-400">{{ index + 1 }}</span>
         </template>
       </Column>
 
@@ -100,7 +100,7 @@ const skeletonRows = Array.from({ length: 5 }, (_, i) => ({ _skeletonId: i }));
 
       <!-- Empty state -->
       <template #empty>
-        <div class="flex flex-col items-center justify-center py-8 text-gray-500">
+        <div class="flex flex-col items-center justify-center py-8 text-surface-400">
           <i class="pi pi-inbox text-4xl mb-2"></i>
           <p>{{ emptyMessage }}</p>
         </div>

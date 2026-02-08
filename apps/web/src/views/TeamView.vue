@@ -180,7 +180,7 @@ async function autoSuggest() {
     <ConfirmDialog />
 
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold text-gray-800">Team</h1>
+      <h1 class="tm-page-title">Team</h1>
     </div>
 
     <Tabs v-model:value="activeTab">
@@ -222,7 +222,7 @@ async function autoSuggest() {
           <div class="mt-4">
             <div class="flex flex-wrap items-end gap-4 mb-4">
               <div class="flex flex-col gap-1">
-                <label class="text-sm font-medium text-gray-700">Credential</label>
+                <label class="tm-label">Credential</label>
                 <Select
                   v-model="metricCredential"
                   :options="credentialOptions"
@@ -245,7 +245,7 @@ async function autoSuggest() {
           <div class="mt-4">
             <div class="flex flex-wrap items-end gap-4 mb-4">
               <div class="flex flex-col gap-1">
-                <label class="text-sm font-medium text-gray-700">Credential</label>
+                <label class="tm-label">Credential</label>
                 <Select
                   v-model="metricCredential"
                   :options="credentialOptions"

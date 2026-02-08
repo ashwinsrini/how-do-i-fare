@@ -74,7 +74,7 @@ async function testAndSave() {
             </li>
             <li>Click "Generate token" and copy it</li>
           </ol>
-          <p class="mt-2 text-xs text-gray-600">
+          <p class="mt-2 text-xs text-surface-500">
             <strong>Classic token alternative:</strong> Select scopes: <code>repo</code>, <code>read:org</code>
           </p>
         </div>
@@ -83,7 +83,7 @@ async function testAndSave() {
 
     <!-- Label -->
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-gray-700">Label</label>
+      <label class="tm-label">Label</label>
       <InputText
         v-model="label"
         placeholder="e.g. My GitHub Account"
@@ -93,7 +93,7 @@ async function testAndSave() {
 
     <!-- Personal Access Token -->
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-gray-700">Personal Access Token</label>
+      <label class="tm-label">Personal Access Token</label>
       <Password
         v-model="pat"
         placeholder="ghp_xxxxxxxxxxxx"

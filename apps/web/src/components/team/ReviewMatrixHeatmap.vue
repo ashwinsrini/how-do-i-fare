@@ -29,30 +29,30 @@ function getCount(reviewer, author) {
 }
 
 function getCellColor(count) {
-  if (count === 0) return 'bg-gray-50 text-gray-300';
+  if (count === 0) return 'bg-surface-50 text-surface-300';
   const intensity = count / maxCount.value;
-  if (intensity > 0.75) return 'bg-indigo-600 text-white';
-  if (intensity > 0.5) return 'bg-indigo-400 text-white';
-  if (intensity > 0.25) return 'bg-indigo-200 text-indigo-800';
-  return 'bg-indigo-100 text-indigo-700';
+  if (intensity > 0.75) return 'bg-emerald-600 text-white';
+  if (intensity > 0.5) return 'bg-emerald-400 text-white';
+  if (intensity > 0.25) return 'bg-emerald-200 text-emerald-800';
+  return 'bg-emerald-100 text-emerald-700';
 }
 </script>
 
 <template>
   <div>
     <div v-if="loading" class="flex justify-center py-12">
-      <i class="pi pi-spinner pi-spin text-3xl text-indigo-600"></i>
+      <i class="pi pi-spinner pi-spin text-3xl text-emerald-600"></i>
     </div>
 
     <div v-else-if="data && allPeople.length > 0" class="overflow-x-auto">
       <table class="text-sm border-collapse">
         <thead>
           <tr>
-            <th class="py-2 px-3 text-left text-gray-600 bg-gray-50 sticky left-0">Reviewer \ Author</th>
+            <th class="py-2 px-3 text-left text-surface-500 bg-surface-50 sticky left-0">Reviewer \ Author</th>
             <th
               v-for="author in allPeople"
               :key="'h-'+author"
-              class="py-2 px-3 text-center text-gray-600 bg-gray-50 whitespace-nowrap"
+              class="py-2 px-3 text-center text-surface-500 bg-surface-50 whitespace-nowrap"
             >
               {{ author }}
             </th>
@@ -60,14 +60,14 @@ function getCellColor(count) {
         </thead>
         <tbody>
           <tr v-for="reviewer in allPeople" :key="reviewer" class="border-t">
-            <td class="py-2 px-3 font-medium text-gray-700 bg-gray-50 sticky left-0 whitespace-nowrap">
+            <td class="py-2 px-3 font-medium text-surface-600 bg-surface-50 sticky left-0 whitespace-nowrap">
               {{ reviewer }}
             </td>
             <td
               v-for="author in allPeople"
               :key="reviewer+'-'+author"
               class="py-2 px-3 text-center font-medium transition-colors"
-              :class="reviewer === author ? 'bg-gray-100 text-gray-300' : getCellColor(getCount(reviewer, author))"
+              :class="reviewer === author ? 'bg-surface-100 text-surface-300' : getCellColor(getCount(reviewer, author))"
             >
               {{ reviewer === author ? '-' : getCount(reviewer, author) || '' }}
             </td>
@@ -75,28 +75,28 @@ function getCellColor(count) {
         </tbody>
       </table>
 
-      <div class="flex items-center gap-4 mt-4 text-xs text-gray-500">
+      <div class="flex items-center gap-4 mt-4 text-xs text-surface-400">
         <span>Intensity:</span>
         <div class="flex items-center gap-1">
-          <div class="w-4 h-4 rounded bg-gray-50 border"></div>
+          <div class="w-4 h-4 rounded bg-surface-50 border"></div>
           <span>0</span>
         </div>
         <div class="flex items-center gap-1">
-          <div class="w-4 h-4 rounded bg-indigo-100"></div>
+          <div class="w-4 h-4 rounded bg-emerald-100"></div>
           <span>Low</span>
         </div>
         <div class="flex items-center gap-1">
-          <div class="w-4 h-4 rounded bg-indigo-400"></div>
+          <div class="w-4 h-4 rounded bg-emerald-400"></div>
           <span>Medium</span>
         </div>
         <div class="flex items-center gap-1">
-          <div class="w-4 h-4 rounded bg-indigo-600"></div>
+          <div class="w-4 h-4 rounded bg-emerald-600"></div>
           <span>High</span>
         </div>
       </div>
     </div>
 
-    <div v-else class="flex flex-col items-center justify-center py-8 text-gray-500">
+    <div v-else class="flex flex-col items-center justify-center py-8 text-surface-400">
       <i class="pi pi-th-large text-4xl mb-2"></i>
       <p>No review matrix data available. Apply filters to load data.</p>
     </div>

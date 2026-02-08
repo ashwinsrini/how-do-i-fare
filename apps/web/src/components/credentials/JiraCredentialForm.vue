@@ -138,7 +138,7 @@ async function save() {
             <li>Copy the generated token — you won't see it again</li>
             <li>Use the email address associated with your Atlassian account</li>
           </ol>
-          <p class="mt-2 text-xs text-gray-600">
+          <p class="mt-2 text-xs text-surface-500">
             <strong>Required permissions:</strong> The token inherits your Jira user permissions.
             Ensure you have access to the projects you want to sync.
           </p>
@@ -148,7 +148,7 @@ async function save() {
 
     <!-- Label -->
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-gray-700">Label</label>
+      <label class="tm-label">Label</label>
       <InputText
         v-model="label"
         placeholder="e.g. My Jira Account"
@@ -158,20 +158,20 @@ async function save() {
 
     <!-- Domain -->
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-gray-700">Domain</label>
+      <label class="tm-label">Domain</label>
       <div class="flex items-center gap-1">
         <InputText
           v-model="domain"
           placeholder="your-company"
           class="flex-1"
         />
-        <span class="text-sm text-gray-500 whitespace-nowrap">.atlassian.net</span>
+        <span class="text-sm text-surface-400 whitespace-nowrap">.atlassian.net</span>
       </div>
     </div>
 
     <!-- Email -->
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-gray-700">Email</label>
+      <label class="tm-label">Email</label>
       <InputText
         v-model="email"
         type="email"
@@ -182,7 +182,7 @@ async function save() {
 
     <!-- API Token -->
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-gray-700">API Token</label>
+      <label class="tm-label">API Token</label>
       <Password
         v-model="apiToken"
         placeholder="Paste your Jira API token"

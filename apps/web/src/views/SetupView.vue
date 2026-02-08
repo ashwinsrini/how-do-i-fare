@@ -123,7 +123,7 @@ async function triggerSyncAll() {
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold text-gray-800">Credentials Setup</h1>
+      <h1 class="tm-page-title">Credentials Setup</h1>
       <Button
         v-if="hasAnyCredential"
         label="Sync Now"
@@ -150,25 +150,25 @@ async function triggerSyncAll() {
 
         <!-- Existing Jira Credentials List -->
         <div v-if="credentialsStore.jiraCredentials.length > 0" class="mt-4 space-y-3">
-          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Saved Credentials</h3>
+          <h3 class="text-sm font-medium text-surface-400 uppercase tracking-wide">Saved Credentials</h3>
           <div
             v-for="cred in credentialsStore.jiraCredentials"
             :key="cred.id"
-            class="bg-white rounded-lg shadow-sm p-4 flex items-center justify-between"
+            class="tm-card p-4 flex items-center justify-between"
           >
             <div class="flex-1">
               <div class="flex items-center gap-2 mb-1">
-                <span class="font-medium text-gray-800">{{ cred.label }}</span>
+                <span class="font-medium text-surface-800">{{ cred.label }}</span>
                 <Tag
                   :value="cred.isActive ? 'Active' : 'Inactive'"
                   :severity="cred.isActive ? 'success' : 'warn'"
                   class="text-xs"
                 />
               </div>
-              <p class="text-sm text-gray-500">
+              <p class="text-sm text-surface-400">
                 {{ cred.domain }}.atlassian.net &middot; {{ cred.email }}
               </p>
-              <p class="text-xs text-gray-400 mt-1">
+              <p class="text-xs text-surface-400 mt-1">
                 Created {{ formatDate(cred.createdAt) }}
               </p>
             </div>
@@ -188,7 +188,7 @@ async function triggerSyncAll() {
         <Card>
           <template #title>
             <div class="flex items-center gap-2">
-              <i class="pi pi-github text-gray-800"></i>
+              <i class="pi pi-github text-surface-800"></i>
               <span>GitHub Credentials</span>
             </div>
           </template>
@@ -199,25 +199,25 @@ async function triggerSyncAll() {
 
         <!-- Existing GitHub Credentials List -->
         <div v-if="credentialsStore.githubCredentials.length > 0" class="mt-4 space-y-3">
-          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Saved Credentials</h3>
+          <h3 class="text-sm font-medium text-surface-400 uppercase tracking-wide">Saved Credentials</h3>
           <div
             v-for="cred in credentialsStore.githubCredentials"
             :key="cred.id"
-            class="bg-white rounded-lg shadow-sm p-4 flex items-center justify-between"
+            class="tm-card p-4 flex items-center justify-between"
           >
             <div class="flex-1">
               <div class="flex items-center gap-2 mb-1">
-                <span class="font-medium text-gray-800">{{ cred.label }}</span>
+                <span class="font-medium text-surface-800">{{ cred.label }}</span>
                 <Tag
                   :value="cred.isActive ? 'Active' : 'Inactive'"
                   :severity="cred.isActive ? 'success' : 'warn'"
                   class="text-xs"
                 />
               </div>
-              <p class="text-sm text-gray-500">
+              <p class="text-sm text-surface-400">
                 {{ cred.username || 'GitHub User' }}
               </p>
-              <p class="text-xs text-gray-400 mt-1">
+              <p class="text-xs text-surface-400 mt-1">
                 Created {{ formatDate(cred.createdAt) }}
               </p>
             </div>

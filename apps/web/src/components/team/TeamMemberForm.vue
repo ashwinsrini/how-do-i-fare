@@ -106,17 +106,17 @@ const isEdit = computed(() => !!props.member);
   >
     <div class="flex flex-col gap-4">
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium text-gray-700">Display Name *</label>
+        <label class="tm-label">Display Name *</label>
         <InputText v-model="form.displayName" placeholder="Full name" />
       </div>
 
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium text-gray-700">Avatar URL</label>
+        <label class="tm-label">Avatar URL</label>
         <InputText v-model="form.avatarUrl" placeholder="https://..." />
       </div>
 
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium text-gray-700">Jira Identity</label>
+        <label class="tm-label">Jira Identity</label>
         <Select
           v-model="form.jiraAccountId"
           :options="jiraOptions"
@@ -131,7 +131,7 @@ const isEdit = computed(() => !!props.member);
       </div>
 
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium text-gray-700">GitHub Identity</label>
+        <label class="tm-label">GitHub Identity</label>
         <Select
           v-model="form.githubLogin"
           :options="githubOptions"

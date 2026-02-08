@@ -218,26 +218,26 @@ function getStatusSeverity(status) {
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-gray-800 mb-6">Settings</h1>
+    <h1 class="tm-page-title mb-6">Settings</h1>
 
     <!-- Credential Management -->
-    <section class="bg-white rounded-lg shadow-sm p-6 mb-6">
-      <h2 class="text-lg font-semibold text-gray-800 mb-4">Credential Management</h2>
+    <section class="tm-card p-6 mb-6">
+      <h2 class="tm-section-title mb-4">Credential Management</h2>
 
       <!-- Jira Credentials -->
       <div v-if="credentialsStore.jiraCredentials.length > 0" class="mb-4">
-        <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">Jira</h3>
+        <h3 class="text-sm font-medium text-surface-400 uppercase tracking-wide mb-3">Jira</h3>
         <div class="space-y-2">
           <div
             v-for="cred in credentialsStore.jiraCredentials"
             :key="cred.id"
-            class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+            class="flex items-center justify-between p-3 bg-surface-50 rounded-lg"
           >
             <div class="flex items-center gap-3">
               <i class="pi pi-server text-blue-500"></i>
               <div>
-                <span class="font-medium text-gray-800">{{ cred.label }}</span>
-                <p class="text-sm text-gray-500">{{ cred.domain }}.atlassian.net</p>
+                <span class="font-medium text-surface-800">{{ cred.label }}</span>
+                <p class="text-sm text-surface-400">{{ cred.domain }}.atlassian.net</p>
               </div>
               <Tag
                 :value="cred.isActive ? 'Active' : 'Inactive'"
@@ -269,18 +269,18 @@ function getStatusSeverity(status) {
 
       <!-- GitHub Credentials -->
       <div v-if="credentialsStore.githubCredentials.length > 0">
-        <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">GitHub</h3>
+        <h3 class="text-sm font-medium text-surface-400 uppercase tracking-wide mb-3">GitHub</h3>
         <div class="space-y-2">
           <div
             v-for="cred in credentialsStore.githubCredentials"
             :key="cred.id"
-            class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+            class="flex items-center justify-between p-3 bg-surface-50 rounded-lg"
           >
             <div class="flex items-center gap-3">
-              <i class="pi pi-github text-gray-800"></i>
+              <i class="pi pi-github text-surface-800"></i>
               <div>
-                <span class="font-medium text-gray-800">{{ cred.label }}</span>
-                <p class="text-sm text-gray-500">{{ cred.username || 'GitHub User' }}</p>
+                <span class="font-medium text-surface-800">{{ cred.label }}</span>
+                <p class="text-sm text-surface-400">{{ cred.username || 'GitHub User' }}</p>
               </div>
               <Tag
                 :value="cred.isActive ? 'Active' : 'Inactive'"
@@ -312,18 +312,18 @@ function getStatusSeverity(status) {
 
       <div
         v-if="credentialsStore.jiraCredentials.length === 0 && credentialsStore.githubCredentials.length === 0"
-        class="text-center py-4 text-gray-500"
+        class="text-center py-4 text-surface-400"
       >
-        <p>No credentials configured. <router-link to="/setup" class="text-blue-600 hover:underline">Add credentials</router-link></p>
+        <p>No credentials configured. <router-link to="/setup" class="text-emerald-600 hover:underline">Add credentials</router-link></p>
       </div>
     </section>
 
     <!-- Sync Configuration -->
-    <section class="bg-white rounded-lg shadow-sm p-6 mb-6">
-      <h2 class="text-lg font-semibold text-gray-800 mb-4">Sync Configuration</h2>
+    <section class="tm-card p-6 mb-6">
+      <h2 class="tm-section-title mb-4">Sync Configuration</h2>
       <div class="flex items-end gap-4">
         <div class="flex flex-col gap-1">
-          <label class="text-sm font-medium text-gray-700">Sync Interval</label>
+          <label class="tm-label">Sync Interval</label>
           <Select
             v-model="syncInterval"
             :options="intervalOptions"
@@ -342,9 +342,9 @@ function getStatusSeverity(status) {
     </section>
 
     <!-- Sync History -->
-    <section class="bg-white rounded-lg shadow-sm p-6 mb-6">
+    <section class="tm-card p-6 mb-6">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold text-gray-800">Sync History</h2>
+        <h2 class="tm-section-title">Sync History</h2>
         <Button
           icon="pi pi-refresh"
           label="Refresh"
@@ -367,7 +367,7 @@ function getStatusSeverity(status) {
         :sortOrder="-1"
       >
         <template #empty>
-          <div class="text-center py-8 text-gray-500">
+          <div class="text-center py-8 text-surface-400">
             No sync history yet.
           </div>
         </template>
@@ -415,13 +415,13 @@ function getStatusSeverity(status) {
             <span v-if="data.errorMessage" class="text-red-600 text-sm">
               {{ data.errorMessage }}
             </span>
-            <span v-else class="text-gray-400">-</span>
+            <span v-else class="text-surface-300">-</span>
           </template>
         </Column>
 
         <Column field="triggeredBy" header="Triggered By" sortable>
           <template #body="{ data }">
-            <span class="text-sm text-gray-600 capitalize">
+            <span class="text-sm text-surface-500 capitalize">
               {{ data.triggeredBy || '-' }}
             </span>
           </template>
@@ -430,9 +430,9 @@ function getStatusSeverity(status) {
     </section>
 
     <!-- Data Management -->
-    <section class="bg-white rounded-lg shadow-sm p-6">
-      <h2 class="text-lg font-semibold text-gray-800 mb-4">Data Management</h2>
-      <p class="text-sm text-gray-500 mb-4">
+    <section class="tm-card p-6">
+      <h2 class="tm-section-title mb-4">Data Management</h2>
+      <p class="text-sm text-surface-400 mb-4">
         Clear synced data to start fresh. This will not delete your credentials.
       </p>
       <div class="flex items-center gap-4">

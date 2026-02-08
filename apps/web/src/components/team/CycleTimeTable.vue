@@ -20,7 +20,7 @@ function fmtHours(val) {
   <DataTable :value="data" :loading="loading" stripedRows class="p-datatable-sm" responsiveLayout="scroll" sortMode="single" removableSort>
     <Column header="#" style="width: 4rem">
       <template #body="{ index }">
-        <span class="font-semibold text-gray-500">{{ index + 1 }}</span>
+        <span class="font-semibold text-surface-400">{{ index + 1 }}</span>
       </template>
     </Column>
 
@@ -64,7 +64,7 @@ function fmtHours(val) {
     </Column>
 
     <template #empty>
-      <div class="flex flex-col items-center justify-center py-8 text-gray-500">
+      <div class="flex flex-col items-center justify-center py-8 text-surface-400">
         <i class="pi pi-clock text-4xl mb-2"></i>
         <p>No cycle time data available. Apply filters to load data.</p>
       </div>

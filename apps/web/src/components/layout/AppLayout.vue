@@ -10,27 +10,22 @@ const isPublicPage = computed(() => route.meta.public);
 
 <template>
   <!-- Public pages (login): no sidebar/header -->
-  <div v-if="isPublicPage" class="min-h-screen bg-gray-50">
+  <div v-if="isPublicPage" class="min-h-screen bg-surface-50">
     <router-view />
   </div>
 
   <!-- Authenticated layout -->
-  <div v-else class="flex flex-col h-screen">
-    <!-- Header: full width at top -->
+  <div v-else class="flex flex-col h-screen bg-surface-50">
     <AppHeader />
 
-    <!-- Body: sidebar + main content -->
     <div class="flex flex-row flex-1 overflow-hidden">
       <AppSidebar />
 
-      <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
-        <router-view />
+      <main class="flex-1 overflow-y-auto p-6 lg:p-8">
+        <div class="max-w-7xl mx-auto">
+          <router-view />
+        </div>
       </main>
     </div>
-
-    <!-- Footer -->
-    <footer class="text-xs text-gray-400 py-2 text-center border-t border-gray-200">
-      <a href="https://kopiko.dev" target="_blank" class="hover:text-gray-500">built on Kopiko</a>
-    </footer>
   </div>
 </template>

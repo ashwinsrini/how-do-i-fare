@@ -43,7 +43,7 @@ watch(() => route.params.id, loadProfile);
       </router-link>
     </div>
 
-    <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+    <div class="tm-filter-bar">
       <div class="flex flex-wrap items-end gap-4">
         <DateRangePicker v-model:startDate="startDate" v-model:endDate="endDate" />
         <Button label="Apply" icon="pi pi-search" :loading="teamStore.loading" @click="loadProfile" />
