@@ -54,4 +54,5 @@ export const config = {
     concurrency: parseInt(optional('WORKER_CONCURRENCY', '5'), 10),
   },
   frontendUrl: optional('VITE_API_URL', 'http://localhost:5173'),
+  allowedOrigins: optional('ALLOWED_ORIGINS', 'http://localhost:5173'),
 };

@@ -2,11 +2,17 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import { SENSITIVE_FIELDS } from '@dev-leaderboard/shared';
+import { config } from '../config.js';
 
 export async function registerPlugins(app) {
-  // CORS
+  // CORS — parse comma-separated ALLOWED_ORIGINS env var
+  const origins = config.allowedOrigins
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+
   await app.register(cors, {
-    origin: true,
+    origin: origins,
     credentials: true,
   });
 
