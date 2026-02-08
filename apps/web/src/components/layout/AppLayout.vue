@@ -1,10 +1,21 @@
 <script setup>
+import { useRoute } from 'vue-router';
+import { computed } from 'vue';
 import AppHeader from './AppHeader.vue';
 import AppSidebar from './AppSidebar.vue';
+
+const route = useRoute();
+const isPublicPage = computed(() => route.meta.public);
 </script>
 
 <template>
-  <div class="flex flex-col h-screen">
+  <!-- Public pages (login): no sidebar/header -->
+  <div v-if="isPublicPage" class="min-h-screen bg-gray-50">
+    <router-view />
+  </div>
+
+  <!-- Authenticated layout -->
+  <div v-else class="flex flex-col h-screen">
     <!-- Header: full width at top -->
     <AppHeader />
 
