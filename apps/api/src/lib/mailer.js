@@ -30,14 +30,7 @@ export async function sendOtp(email, code) {
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; background: #ffffff;">
         <!-- Header -->
-        <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 32px 24px; text-align: center; border-radius: 12px 12px 0 0;">
-          <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 12px auto;">
-            <tr>
-              <td style="background: rgba(255,255,255,0.2); border-radius: 8px; width: 36px; height: 36px; text-align: center; vertical-align: middle;">
-                <span style="font-size: 18px; line-height: 36px;">&#x2581;&#x2583;&#x2587;</span>
-              </td>
-            </tr>
-          </table>
+        <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 28px 24px; text-align: center; border-radius: 12px 12px 0 0;">
           <h1 style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: -0.3px;">TeamMetrics</h1>
         </div>
 
