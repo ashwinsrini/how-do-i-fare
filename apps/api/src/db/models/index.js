@@ -97,6 +97,9 @@ GithubOrganization.belongsToMany(GithubCredential, {
   otherKey: 'credentialId',
   as: 'linkedCredentials',
 });
+// Direct hasMany for eager-loading junction in leaderboard queries
+GithubOrganization.hasMany(CredentialGithubOrg, { foreignKey: 'organizationId' });
+CredentialGithubOrg.belongsTo(GithubOrganization, { foreignKey: 'organizationId' });
 
 // --- Sync Associations ---
 JiraCredential.hasMany(SyncJob, { foreignKey: 'jiraCredentialId', as: 'syncJobs' });
