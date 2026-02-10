@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import { config } from '../../config.js';
 import { decrypt } from '../../lib/crypto.js';
 import {
@@ -10,6 +11,8 @@ import {
   fetchPullRequests,
   fetchPRDetail,
   fetchPRReviews,
+  fetchUserProfile,
+  setOnRateLimit,
 } from '../../routes/github/github.client.js';
 import {
   sequelize,
@@ -22,6 +25,7 @@ import {
   CredentialGithubOrg,
   SyncJob,
 } from '../../db/models/index.js';
+import { SyncProgressReporter } from '../utils/sync-progress.js';
 
 const LOCK_TIMEOUT_MINUTES = 30;
 
@@ -93,10 +97,59 @@ async function processGithubSync(job) {
   }
 
   const decryptedPat = decrypt(credential.pat);
-  let processedItems = 0;
+  const reporter = new SyncProgressReporter(syncJob);
+  const filters = job.data.filters || null;
+
+  // Register rate-limit callback so the phase text shows when we're waiting
+  setOnRateLimit(({ waitMs }) => {
+    reporter.setPhase(`Rate limited — waiting ${Math.ceil(waitMs / 1000)}s for reset`);
+  });
+
+  // Cache for resolving GitHub logins to display names (login -> name|null)
+  const nameCache = new Map();
+
+  async function resolveUserName(login) {
+    if (!login) return null;
+    if (nameCache.has(login)) return nameCache.get(login);
+
+    // Check if we already have a resolved name in the DB for this login
+    const existing = await GithubPullRequest.findOne({
+      where: { authorLogin: login, authorName: { [Op.not]: null } },
+      attributes: ['authorName'],
+      raw: true,
+    });
+    if (existing) {
+      let cachedName = existing.authorName;
+      // Strip SAML/EMU namespace prefix from cached values too
+      if (cachedName && cachedName.includes('\\')) {
+        const stripped = cachedName.split('\\').pop().trim();
+        cachedName = stripped || null;
+      }
+      nameCache.set(login, cachedName);
+      return cachedName;
+    }
+
+    // Fetch from GitHub API
+    try {
+      const profile = await fetchUserProfile(decryptedPat, login);
+      let name = profile.name || null;
+      // Strip SAML/EMU namespace prefix (e.g. "GitHubArchive\John Doe" → "John Doe")
+      if (name && name.includes('\\')) {
+        const stripped = name.split('\\').pop().trim();
+        name = stripped || null; // null if only the namespace prefix with no actual name
+      }
+      nameCache.set(login, name);
+      return name;
+    } catch (err) {
+      console.warn(`[github-worker] Could not fetch profile for ${login}:`, err.message);
+      nameCache.set(login, null);
+      return null;
+    }
+  }
 
   try {
     // 3. Fetch user info and save username
+    reporter.setPhase('Fetching organizations');
     const user = await fetchUser(decryptedPat);
     if (user.login && user.login !== credential.username) {
       await credential.update({ username: user.login });
@@ -125,6 +178,15 @@ async function processGithubSync(job) {
     const lastSync = credential.updatedAt || null;
 
     for (const org of allOrgs) {
+      // Check for cancellation before each org
+      if (await reporter.isCancelled()) {
+        console.log('[github-worker] Sync cancelled by user, stopping');
+        await reporter.flush();
+        await syncJob.update({ completedAt: new Date(), processedItems: reporter._processedItems, currentPhase: null });
+        setOnRateLimit(null);
+        return;
+      }
+
       // 5a. Upsert GithubOrganization globally (by githubOrgId)
       const [ghOrg] = await GithubOrganization.findOrCreate({
         where: { githubOrgId: org.id },
@@ -147,6 +209,12 @@ async function processGithubSync(job) {
         defaults: { credentialId, organizationId: ghOrg.id },
       });
 
+      // Skip org if not in filters
+      if (filters?.orgIds && !filters.orgIds.includes(ghOrg.id)) {
+        console.log(`[github-worker] Org ${org.login} (id=${ghOrg.id}) not in filter, skipping`);
+        continue;
+      }
+
       // 5c. Try to acquire sync lock — if another credential is syncing this org, skip
       const lockAcquired = await acquireOrgLock(org.id, credentialId);
       if (!lockAcquired) {
@@ -157,6 +225,7 @@ async function processGithubSync(job) {
       try {
         // 5d. Fetch members for real orgs (not personal)
         if (!org.isPersonal) {
+          reporter.setPhase(`Syncing ${org.login}: fetching members`);
           try {
             const members = await fetchOrgMembers(decryptedPat, org.login);
             for (const member of members) {
@@ -183,6 +252,7 @@ async function processGithubSync(job) {
         }
 
         // 5e. Fetch repos
+        reporter.setPhase(`Syncing ${org.login}: fetching repos`);
         let repos;
         if (org.isPersonal) {
           repos = await fetchUserRepos(decryptedPat);
@@ -213,6 +283,16 @@ async function processGithubSync(job) {
         }
 
         for (const repo of repos) {
+          // Check for cancellation before each repo
+          if (await reporter.isCancelled()) {
+            console.log('[github-worker] Sync cancelled by user, stopping');
+            await reporter.flush();
+            await syncJob.update({ completedAt: new Date(), processedItems: reporter._processedItems, currentPhase: null });
+            await releaseOrgLock(org.id, credentialId);
+            setOnRateLimit(null);
+            return;
+          }
+
           // 5f. Upsert GithubRepository globally (by githubRepoId)
           const [ghRepo] = await GithubRepository.findOrCreate({
             where: { githubRepoId: repo.id },
@@ -232,11 +312,21 @@ async function processGithubSync(job) {
             defaultBranch: repo.default_branch || 'main',
           });
 
+          // Skip repo if not in filters
+          if (filters?.repoIds && !filters.repoIds.includes(ghRepo.id)) {
+            console.log(`[github-worker] Repo ${repo.full_name} (id=${ghRepo.id}) not in filter, skipping`);
+            continue;
+          }
+
           // 5g. Fetch PRs (all states, paginated)
+          // On subsequent syncs, sort by 'updated' so newest-updated come first,
+          // enabling early exit when we hit pages of already-synced PRs.
+          const prSort = lastSync ? 'updated' : 'created';
           let page = 1;
           let hasMore = true;
 
           while (hasMore) {
+            reporter.setPhase(`Syncing ${org.login}: ${repo.name} — PRs page ${page}`);
             const [owner, repoName] = repo.full_name.split('/');
             const prResult = await fetchPullRequests(
               decryptedPat,
@@ -245,6 +335,7 @@ async function processGithubSync(job) {
               'all',
               page,
               100,
+              prSort,
             );
             const prs = prResult.data || [];
 
@@ -253,7 +344,10 @@ async function processGithubSync(job) {
               break;
             }
 
+            let pageNewOrUpdatedCount = 0;
+
             for (const pr of prs) {
+              const authorLogin = pr.user?.login || null;
               const prData = {
                 repositoryId: ghRepo.id,
                 githubPrId: pr.id,
@@ -262,7 +356,8 @@ async function processGithubSync(job) {
                 state: pr.state || null,
                 merged: pr.merged_at != null,
                 draft: pr.draft || false,
-                authorLogin: pr.user?.login || null,
+                authorLogin,
+                authorName: await resolveUserName(authorLogin),
                 authorId: pr.user?.id || null,
                 authorAvatar: pr.user?.avatar_url || null,
                 createdAtGh: pr.created_at || null,
@@ -283,6 +378,7 @@ async function processGithubSync(job) {
                 new Date(pr.updated_at) > new Date(lastSync);
 
               if (isNewOrUpdated) {
+                pageNewOrUpdatedCount++;
                 try {
                   const detail = await fetchPRDetail(
                     decryptedPat,
@@ -313,48 +409,60 @@ async function processGithubSync(job) {
                 });
               }
 
-              // Fetch reviews
-              try {
-                const reviews = await fetchPRReviews(
-                  decryptedPat,
-                  owner,
-                  repoName,
-                  pr.number,
-                );
+              // Fetch reviews only for new or updated PRs
+              if (isNewOrUpdated) {
+                reporter.setPhase(`Syncing ${org.login}: ${repo.name} — reviews for #${pr.number}`);
+                try {
+                  const reviews = await fetchPRReviews(
+                    decryptedPat,
+                    owner,
+                    repoName,
+                    pr.number,
+                  );
 
-                for (const review of reviews) {
-                  const reviewData = {
-                    pullRequestId: prRecord.id,
-                    githubReviewId: review.id,
-                    reviewerLogin: review.user?.login || null,
-                    reviewerId: review.user?.id || null,
-                    reviewerAvatar: review.user?.avatar_url || null,
-                    state: review.state || null,
-                    submittedAt: review.submitted_at || null,
-                  };
+                  for (const review of reviews) {
+                    const reviewerLogin = review.user?.login || null;
+                    const reviewData = {
+                      pullRequestId: prRecord.id,
+                      githubReviewId: review.id,
+                      reviewerLogin,
+                      reviewerName: await resolveUserName(reviewerLogin),
+                      reviewerId: review.user?.id || null,
+                      reviewerAvatar: review.user?.avatar_url || null,
+                      state: review.state || null,
+                      submittedAt: review.submitted_at || null,
+                    };
 
-                  // Global findOrCreate by githubReviewId
-                  const [, reviewCreated] = await GithubReview.findOrCreate({
-                    where: { githubReviewId: review.id },
-                    defaults: reviewData,
-                  });
-                  if (!reviewCreated) {
-                    await GithubReview.update(reviewData, {
+                    // Global findOrCreate by githubReviewId
+                    const [, reviewCreated] = await GithubReview.findOrCreate({
                       where: { githubReviewId: review.id },
+                      defaults: reviewData,
                     });
+                    if (!reviewCreated) {
+                      await GithubReview.update(reviewData, {
+                        where: { githubReviewId: review.id },
+                      });
+                    }
                   }
+                } catch (reviewErr) {
+                  console.warn(
+                    `[github-worker] Could not fetch reviews for ${repo.full_name}#${pr.number}:`,
+                    reviewErr.message,
+                  );
                 }
-              } catch (reviewErr) {
-                console.warn(
-                  `[github-worker] Could not fetch reviews for ${repo.full_name}#${pr.number}:`,
-                  reviewErr.message,
-                );
               }
 
-              processedItems++;
+              reporter.increment();
             }
 
-            if (prs.length < 100) {
+            // Early exit: if sorted by 'updated' and no PRs on this page were
+            // new or updated, all remaining pages are even older — stop paginating.
+            if (lastSync && pageNewOrUpdatedCount === 0) {
+              console.log(
+                `[github-worker] ${repo.full_name}: page ${page} had 0 new/updated PRs, stopping pagination early`,
+              );
+              hasMore = false;
+            } else if (prs.length < 100) {
               hasMore = false;
             } else {
               page++;
@@ -367,24 +475,65 @@ async function processGithubSync(job) {
       }
     }
 
-    // 6. Mark complete
-    await syncJob.update({
-      status: 'completed',
-      completedAt: new Date(),
-      processedItems,
-    });
+    // 6. Backfill missing author/reviewer display names
+    if (!(await reporter.isCancelled())) {
+      reporter.setPhase('Resolving display names');
+
+      // Find distinct author logins without a name
+      const [missingAuthors] = await sequelize.query(
+        `SELECT DISTINCT "authorLogin" FROM github_pull_requests WHERE "authorLogin" IS NOT NULL AND "authorName" IS NULL`,
+      );
+      for (const { authorLogin } of missingAuthors) {
+        if (await reporter.isCancelled()) break;
+        const name = await resolveUserName(authorLogin);
+        if (name) {
+          await GithubPullRequest.update({ authorName: name }, { where: { authorLogin, authorName: null } });
+        }
+      }
+
+      // Find distinct reviewer logins without a name
+      const [missingReviewers] = await sequelize.query(
+        `SELECT DISTINCT "reviewerLogin" FROM github_reviews WHERE "reviewerLogin" IS NOT NULL AND "reviewerName" IS NULL`,
+      );
+      for (const { reviewerLogin } of missingReviewers) {
+        if (await reporter.isCancelled()) break;
+        const name = await resolveUserName(reviewerLogin);
+        if (name) {
+          await GithubReview.update({ reviewerName: name }, { where: { reviewerLogin, reviewerName: null } });
+        }
+      }
+    }
+
+    // 7. Mark complete (don't overwrite if already cancelled)
+    setOnRateLimit(null);
+    await reporter.flush();
+    await syncJob.reload();
+    if (syncJob.status !== 'cancelled') {
+      await syncJob.update({
+        status: 'completed',
+        completedAt: new Date(),
+        processedItems: reporter._processedItems,
+        currentPhase: null,
+      });
+    }
   } catch (err) {
-    // 7. Sanitize error — never include tokens
+    // 8. Sanitize error — never include tokens
+    setOnRateLimit(null);
     const sanitized = (err.message || String(err))
       .replace(decryptedPat, '[REDACTED]')
       .replace(credential.pat, '[REDACTED]');
 
-    await syncJob.update({
-      status: 'failed',
-      completedAt: new Date(),
-      error: sanitized.slice(0, 2000),
-      processedItems,
-    });
+    await reporter.flush();
+    await syncJob.reload();
+    if (syncJob.status !== 'cancelled') {
+      await syncJob.update({
+        status: 'failed',
+        completedAt: new Date(),
+        error: sanitized.slice(0, 2000),
+        processedItems: reporter._processedItems,
+        currentPhase: null,
+      });
+    }
 
     throw err;
   }

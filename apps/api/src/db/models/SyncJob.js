@@ -12,8 +12,12 @@ export default (sequelize) => {
       allowNull: false,
     },
     status: {
-      type: DataTypes.ENUM('pending', 'running', 'completed', 'failed'),
+      type: DataTypes.ENUM('pending', 'running', 'completed', 'failed', 'cancelled'),
       defaultValue: 'pending',
+    },
+    queueJobId: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
     },
     jiraCredentialId: {
       type: DataTypes.STRING(30),
@@ -46,6 +50,10 @@ export default (sequelize) => {
     processedItems: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
+    },
+    currentPhase: {
+      type: DataTypes.TEXT,
+      allowNull: true,
     },
     triggeredBy: {
       type: DataTypes.ENUM('manual', 'scheduled'),

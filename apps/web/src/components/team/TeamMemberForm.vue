@@ -56,8 +56,9 @@ const jiraOptions = computed(() =>
 
 const githubOptions = computed(() =>
   props.githubUsers.map((u) => ({
-    label: u.login,
+    label: u.displayName ? `${u.displayName} (${u.login})` : u.login,
     value: u.login,
+    displayName: u.displayName || null,
     userId: u.githubUserId,
     avatar: u.avatarUrl,
   }))
@@ -81,7 +82,7 @@ function onGithubSelect(val) {
   if (user) {
     form.value.githubUserId = user.githubUserId;
     if (!form.value.displayName) {
-      form.value.displayName = user.login;
+      form.value.displayName = user.displayName || user.login;
     }
     if (!form.value.avatarUrl && user.avatarUrl) {
       form.value.avatarUrl = user.avatarUrl;

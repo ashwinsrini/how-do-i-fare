@@ -48,7 +48,7 @@ const mergedData = computed(() => {
     return {
       reviewerLogin: item.reviewerLogin,
       reviewerAvatar: item.reviewerAvatar,
-      reviewer: item.reviewerLogin,
+      reviewer: item.reviewerName || item.reviewerLogin,
       reviewsGiven,
       avgTurnaroundHours: avgHours,
       avgTurnaround: formatTurnaround(avgHours),
@@ -82,7 +82,7 @@ const mergedData = computed(() => {
         >
           {{ (row.reviewerLogin || '?').charAt(0).toUpperCase() }}
         </div>
-        <span class="font-medium">{{ row.reviewerLogin }}</span>
+        <span class="font-medium">{{ row.reviewer }}</span>
       </div>
     </template>
 

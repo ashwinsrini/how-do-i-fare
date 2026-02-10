@@ -29,9 +29,17 @@ export default async function teamRoutes(app) {
       },
     },
   }, async (request, reply) => {
-    const member = await teamService.createMember(request.body);
-    reply.code(201);
-    return member;
+    try {
+      const member = await teamService.createMember(request.body);
+      reply.code(201);
+      return member;
+    } catch (err) {
+      if (err.name === 'SequelizeUniqueConstraintError') {
+        reply.code(409);
+        return { error: 'A member with this Jira account or GitHub login already exists' };
+      }
+      throw err;
+    }
   });
 
   app.put('/members/:id', {

@@ -12,6 +12,10 @@ const allPeople = computed(() => {
   return [...set].sort();
 });
 
+function displayName(login) {
+  return props.data?.nameMap?.[login] || login;
+}
+
 const maxCount = computed(() => {
   if (!props.data) return 1;
   let max = 1;
@@ -53,15 +57,16 @@ function getCellColor(count) {
               v-for="author in allPeople"
               :key="'h-'+author"
               class="py-2 px-3 text-center text-surface-500 bg-surface-50 whitespace-nowrap"
+              :title="author"
             >
-              {{ author }}
+              {{ displayName(author) }}
             </th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="reviewer in allPeople" :key="reviewer" class="border-t">
-            <td class="py-2 px-3 font-medium text-surface-600 bg-surface-50 sticky left-0 whitespace-nowrap">
-              {{ reviewer }}
+            <td class="py-2 px-3 font-medium text-surface-600 bg-surface-50 sticky left-0 whitespace-nowrap" :title="reviewer">
+              {{ displayName(reviewer) }}
             </td>
             <td
               v-for="author in allPeople"

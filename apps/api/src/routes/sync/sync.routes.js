@@ -7,6 +7,15 @@ const triggerBody = {
   properties: {
     type: { type: 'string', enum: ['jira', 'github'] },
     credentialId: { type: 'string', minLength: 1 },
+    filters: {
+      type: 'object',
+      properties: {
+        orgIds: { type: 'array', items: { type: 'integer' } },
+        repoIds: { type: 'array', items: { type: 'integer' } },
+        projectKeys: { type: 'array', items: { type: 'string' } },
+      },
+      additionalProperties: false,
+    },
   },
 };
 
@@ -32,7 +41,7 @@ export default async function syncRoutes(app) {
   app.post('/trigger', {
     schema: { body: triggerBody },
   }, async (request, reply) => {
-    const { type, credentialId } = request.body;
+    const { type, credentialId, filters } = request.body;
 
     // Verify the user owns this credential
     const Model = type === 'jira' ? JiraCredential : GithubCredential;
@@ -42,13 +51,26 @@ export default async function syncRoutes(app) {
     }
 
     try {
-      const syncJob = await syncService.triggerSync(type, credentialId, 'manual');
+      const syncJob = await syncService.triggerSync(type, credentialId, 'manual', filters || null);
       return reply.status(201).send(syncJob);
     } catch (err) {
       const status = err.statusCode || 500;
       return reply.status(status).send({
         error: err.message || 'Failed to trigger sync',
       });
+    }
+  });
+
+  /**
+   * POST /cancel/:id — Cancel a running or pending sync job
+   */
+  app.post('/cancel/:id', async (request, reply) => {
+    try {
+      const syncJob = await syncService.cancelSync(request.params.id);
+      return syncJob;
+    } catch (err) {
+      const status = err.statusCode || 500;
+      return reply.status(status).send({ error: err.message });
     }
   });
 

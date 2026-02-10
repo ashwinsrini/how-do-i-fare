@@ -159,6 +159,7 @@ export async function getPRsRaisedLeaderboard(filters) {
     include: buildPRInclude(filters),
     attributes: [
       'authorLogin',
+      [sequelize.fn('MAX', sequelize.col('authorName')), 'authorName'],
       'authorId',
       'authorAvatar',
       [sequelize.fn('COUNT', sequelize.col('GithubPullRequest.id')), 'totalPRs'],
@@ -186,6 +187,7 @@ export async function getPRsMergedLeaderboard(filters) {
     include: buildPRInclude(filters),
     attributes: [
       'authorLogin',
+      [sequelize.fn('MAX', sequelize.col('authorName')), 'authorName'],
       'authorId',
       'authorAvatar',
       [sequelize.fn('COUNT', sequelize.col('GithubPullRequest.id')), 'totalMerged'],
@@ -213,6 +215,7 @@ export async function getPRsReviewedLeaderboard(filters) {
     include: buildReviewInclude(filters),
     attributes: [
       'reviewerLogin',
+      [sequelize.fn('MAX', sequelize.col('reviewerName')), 'reviewerName'],
       'reviewerId',
       'reviewerAvatar',
       [sequelize.fn('COUNT', sequelize.col('GithubReview.id')), 'totalReviews'],
@@ -240,6 +243,7 @@ export async function getLinesChangedLeaderboard(filters) {
     include: buildPRInclude(filters),
     attributes: [
       'authorLogin',
+      [sequelize.fn('MAX', sequelize.col('authorName')), 'authorName'],
       'authorId',
       'authorAvatar',
       [sequelize.fn('SUM', sequelize.col('linesAdded')), 'totalLinesAdded'],
@@ -294,6 +298,7 @@ export async function getReviewTurnaroundLeaderboard(filters) {
     WITH review_times AS (
       SELECT
         rv."reviewerLogin",
+        rv."reviewerName",
         rv."reviewerId",
         rv."reviewerAvatar",
         EXTRACT(EPOCH FROM (rv."submittedAt" - pr."createdAtGh")) / 3600.0 AS turnaround_hours
@@ -309,6 +314,7 @@ export async function getReviewTurnaroundLeaderboard(filters) {
     )
     SELECT
       "reviewerLogin",
+      MAX("reviewerName") AS "reviewerName",
       "reviewerId",
       "reviewerAvatar",
       ROUND(AVG(turnaround_hours)::numeric, 2) AS "avgTurnaroundHours",

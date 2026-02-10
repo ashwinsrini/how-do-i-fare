@@ -10,18 +10,28 @@ async function cleanup() {
   console.log('[cleanup] Starting full data cleanup...\n');
 
   // Order matters — child tables first (foreign key constraints)
-  // Credentials are preserved so users don't have to re-enter them.
+  // Only accounts (users, otp_codes) and their credentials
+  // (jira_credentials, github_credentials) are preserved.
   const tables = [
+    // GitHub synced data (deepest children first)
     'github_reviews',
     'github_pull_requests',
     'github_repositories',
     'github_org_members',
+    // Credential-to-org junction (references github_organizations)
+    'credential_github_orgs',
     'github_organizations',
+    // Jira synced data (deepest children first)
     'jira_issues',
     'jira_sprints',
+    // Credential-to-project junction (references jira_projects)
+    'credential_jira_projects',
     'jira_projects',
+    'jira_instances',
+    // Job tracking & cross-platform data
     'sync_jobs',
     'team_members',
+    'app_settings',
   ];
 
   for (const table of tables) {

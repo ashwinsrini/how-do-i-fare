@@ -166,7 +166,7 @@ async function triggerSyncAll() {
                 />
               </div>
               <p class="text-sm text-surface-400">
-                {{ cred.domain }}.atlassian.net &middot; {{ cred.email }}
+                {{ cred.domain }} &middot; {{ cred.email }}
               </p>
               <p class="text-xs text-surface-400 mt-1">
                 Created {{ formatDate(cred.createdAt) }}

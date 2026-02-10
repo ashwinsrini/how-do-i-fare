@@ -62,19 +62,19 @@ export async function discoverJiraUsers() {
 
 export async function discoverGithubUsers() {
   const [users] = await sequelize.query(`
-    SELECT login, "githubUserId", "avatarUrl" FROM (
-      SELECT DISTINCT m.login, m."githubUserId", m."avatarUrl"
+    SELECT DISTINCT ON (login) login, "githubUserId", "avatarUrl", "displayName" FROM (
+      SELECT m.login, m."githubUserId", m."avatarUrl", NULL AS "displayName"
       FROM github_org_members m
-      UNION
-      SELECT DISTINCT pr."authorLogin" AS login, pr."authorId" AS "githubUserId", pr."authorAvatar" AS "avatarUrl"
+      UNION ALL
+      SELECT pr."authorLogin" AS login, pr."authorId" AS "githubUserId", pr."authorAvatar" AS "avatarUrl", pr."authorName" AS "displayName"
       FROM github_pull_requests pr
       WHERE pr."authorLogin" IS NOT NULL
-      UNION
-      SELECT DISTINCT rv."reviewerLogin" AS login, rv."reviewerId" AS "githubUserId", rv."reviewerAvatar" AS "avatarUrl"
+      UNION ALL
+      SELECT rv."reviewerLogin" AS login, rv."reviewerId" AS "githubUserId", rv."reviewerAvatar" AS "avatarUrl", rv."reviewerName" AS "displayName"
       FROM github_reviews rv
       WHERE rv."reviewerLogin" IS NOT NULL
     ) sub
-    ORDER BY login ASC
+    ORDER BY login ASC, "displayName" NULLS LAST
   `);
 
   const mapped = await TeamMember.findAll({
@@ -141,9 +141,20 @@ export async function suggestMappings() {
     let bestScore = 0;
 
     for (const gUser of unmappedGithub) {
-      const dice = diceCoefficient(jUser.assigneeName || '', gUser.login || '');
-      const tokens = tokenOverlap(jUser.assigneeName || '', gUser.login || '');
-      const combined = dice * 0.6 + tokens * 0.4;
+      // Compare against both login and resolved display name, take the best
+      const ghName = gUser.displayName || gUser.login || '';
+      const ghLogin = gUser.login || '';
+      const jiraName = jUser.assigneeName || '';
+
+      const diceLogin = diceCoefficient(jiraName, ghLogin);
+      const tokensLogin = tokenOverlap(jiraName, ghLogin);
+      const scoreLogin = diceLogin * 0.6 + tokensLogin * 0.4;
+
+      const diceName = diceCoefficient(jiraName, ghName);
+      const tokensName = tokenOverlap(jiraName, ghName);
+      const scoreName = diceName * 0.6 + tokensName * 0.4;
+
+      const combined = Math.max(scoreLogin, scoreName);
 
       if (combined > bestScore) {
         bestScore = combined;
@@ -350,6 +361,7 @@ export async function getCycleTimeMetrics({ credentialId, startDate, endDate } =
     pr_cycles AS (
       SELECT
         sp."authorLogin",
+        sp."authorName",
         sp."authorAvatar",
         EXTRACT(EPOCH FROM (fr."firstReviewAt" - sp."createdAtGh")) / 3600.0 AS hours_to_first_review,
         EXTRACT(EPOCH FROM (sp."mergedAt" - fr."firstReviewAt")) / 3600.0 AS hours_first_review_to_merge,
@@ -364,6 +376,7 @@ export async function getCycleTimeMetrics({ credentialId, startDate, endDate } =
     )
     SELECT
       "authorLogin",
+      MAX("authorName") AS "authorName",
       "authorAvatar",
       ROUND(AVG(hours_to_first_review)::numeric, 2) AS "avgHoursToFirstReview",
       ROUND(AVG(hours_first_review_to_merge)::numeric, 2) AS "avgHoursFirstReviewToMerge",
@@ -405,7 +418,9 @@ export async function getReviewMatrix({ credentialId, startDate, endDate } = {})
   const query = `
     SELECT
       rv."reviewerLogin",
+      MAX(rv."reviewerName") AS "reviewerName",
       pr."authorLogin",
+      MAX(pr."authorName") AS "authorName",
       COUNT(*)::integer AS "count"
     FROM github_reviews rv
     INNER JOIN github_pull_requests pr ON rv."pullRequestId" = pr.id
@@ -421,6 +436,13 @@ export async function getReviewMatrix({ credentialId, startDate, endDate } = {})
 
   const [rows] = await sequelize.query(query, { replacements });
 
+  // Build name lookup maps
+  const nameMap = {};
+  for (const row of rows) {
+    if (row.reviewerName) nameMap[row.reviewerLogin] = row.reviewerName;
+    if (row.authorName) nameMap[row.authorLogin] = row.authorName;
+  }
+
   const reviewers = [...new Set(rows.map((r) => r.reviewerLogin))];
   const authors = [...new Set(rows.map((r) => r.authorLogin))];
   const matrix = {};
@@ -430,7 +452,7 @@ export async function getReviewMatrix({ credentialId, startDate, endDate } = {})
     matrix[row.reviewerLogin][row.authorLogin] = row.count;
   }
 
-  return { reviewers, authors, matrix };
+  return { reviewers, authors, matrix, nameMap };
 }
 
 // --- Time-Series Trends ---
@@ -468,7 +490,7 @@ export async function getTrends({ metric, interval = 'week', credentialId, start
     query = `
       SELECT
         date_trunc('${bucket}', pr."createdAtGh") AS period,
-        pr."authorLogin" AS person,
+        COALESCE(pr."authorName", pr."authorLogin") AS person,
         COUNT(*)::integer AS value
       FROM github_pull_requests pr
       INNER JOIN github_repositories r ON pr."repositoryId" = r.id
@@ -477,7 +499,7 @@ export async function getTrends({ metric, interval = 'week', credentialId, start
         AND pr."authorLogin" IS NOT NULL
         AND pr."createdAtGh" IS NOT NULL
         ${dateCond}
-      GROUP BY period, pr."authorLogin"
+      GROUP BY period, COALESCE(pr."authorName", pr."authorLogin")
       ORDER BY period ASC;
     `;
   } else if (metric === 'prs-merged') {
@@ -489,7 +511,7 @@ export async function getTrends({ metric, interval = 'week', credentialId, start
     query = `
       SELECT
         date_trunc('${bucket}', pr."mergedAt") AS period,
-        pr."authorLogin" AS person,
+        COALESCE(pr."authorName", pr."authorLogin") AS person,
         COUNT(*)::integer AS value
       FROM github_pull_requests pr
       INNER JOIN github_repositories r ON pr."repositoryId" = r.id
@@ -499,7 +521,7 @@ export async function getTrends({ metric, interval = 'week', credentialId, start
         AND pr."authorLogin" IS NOT NULL
         AND pr."mergedAt" IS NOT NULL
         ${dateCond}
-      GROUP BY period, pr."authorLogin"
+      GROUP BY period, COALESCE(pr."authorName", pr."authorLogin")
       ORDER BY period ASC;
     `;
   } else if (metric === 'reviews') {
@@ -511,7 +533,7 @@ export async function getTrends({ metric, interval = 'week', credentialId, start
     query = `
       SELECT
         date_trunc('${bucket}', rv."submittedAt") AS period,
-        rv."reviewerLogin" AS person,
+        COALESCE(rv."reviewerName", rv."reviewerLogin") AS person,
         COUNT(*)::integer AS value
       FROM github_reviews rv
       INNER JOIN github_pull_requests pr ON rv."pullRequestId" = pr.id
@@ -521,7 +543,7 @@ export async function getTrends({ metric, interval = 'week', credentialId, start
         AND rv."reviewerLogin" IS NOT NULL
         AND rv."submittedAt" IS NOT NULL
         ${dateCond}
-      GROUP BY period, rv."reviewerLogin"
+      GROUP BY period, COALESCE(rv."reviewerName", rv."reviewerLogin")
       ORDER BY period ASC;
     `;
   } else if (metric === 'story-points') {

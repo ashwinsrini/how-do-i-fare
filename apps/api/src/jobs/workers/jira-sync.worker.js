@@ -19,6 +19,7 @@ import {
   CredentialJiraProject,
   SyncJob,
 } from '../../db/models/index.js';
+import { SyncProgressReporter } from '../utils/sync-progress.js';
 
 const LOCK_TIMEOUT_MINUTES = 30;
 
@@ -105,10 +106,12 @@ async function processJiraSync(job) {
   const decryptedToken = decrypt(credential.apiToken);
   const { domain, email } = credential;
 
-  let processedItems = 0;
+  const reporter = new SyncProgressReporter(syncJob);
+  const filters = job.data.filters || null;
 
   try {
     // 3. findOrCreate JiraInstance by domain
+    reporter.setPhase('Discovering fields and projects');
     const [jiraInstance] = await JiraInstance.findOrCreate({
       where: { domain },
       defaults: { domain },
@@ -129,6 +132,14 @@ async function processJiraSync(job) {
     const projects = await fetchProjects(domain, email, decryptedToken);
 
     for (const proj of projects) {
+      // Check for cancellation before each project
+      if (await reporter.isCancelled()) {
+        console.log('[jira-worker] Sync cancelled by user, stopping');
+        await reporter.flush();
+        await syncJob.update({ completedAt: new Date(), processedItems: reporter._processedItems, currentPhase: null });
+        return;
+      }
+
       // 5a. Upsert JiraProject globally (by instanceId + jiraProjectId)
       const [jiraProject] = await JiraProject.findOrCreate({
         where: { instanceId: jiraInstance.id, jiraProjectId: String(proj.id) },
@@ -152,6 +163,12 @@ async function processJiraSync(job) {
         defaults: { credentialId, projectId: jiraProject.id },
       });
 
+      // Skip project if not in filters
+      if (filters?.projectKeys && !filters.projectKeys.includes(proj.key)) {
+        console.log(`[jira-worker] Project ${proj.key} not in filter, skipping`);
+        continue;
+      }
+
       // 5c. Try to acquire sync lock — if another credential is syncing this project, skip
       const lockAcquired = await acquireProjectLock(jiraProject.id, credentialId);
       if (!lockAcquired) {
@@ -161,6 +178,7 @@ async function processJiraSync(job) {
 
       try {
         // 5d. Fetch all sprints via Agile API (boards -> sprints)
+        reporter.setPhase(`Syncing ${proj.key}: fetching sprints`);
         try {
           const boards = await fetchBoards(domain, email, decryptedToken, proj.key);
           const scrumBoards = boards.filter((b) => b.type === 'scrum');
@@ -233,6 +251,16 @@ async function processJiraSync(job) {
         let total = 0;
 
         do {
+          // Check for cancellation before each issue page
+          if (await reporter.isCancelled()) {
+            console.log('[jira-worker] Sync cancelled by user, stopping');
+            await reporter.flush();
+            await syncJob.update({ completedAt: new Date(), processedItems: reporter._processedItems, currentPhase: null });
+            await releaseProjectLock(jiraProject.id, credentialId);
+            return;
+          }
+
+          reporter.setPhase(`Syncing ${proj.key}: issues ${startAt}/${total || '?'}`);
           const result = await searchIssues(
             domain,
             email,
@@ -242,7 +270,11 @@ async function processJiraSync(job) {
             maxResults,
             fieldList,
           );
-          total = result.total;
+          if (startAt === 0) {
+            total = result.total;
+            reporter.setTotal(reporter._totalItems + total);
+          }
+          reporter.setPhase(`Syncing ${proj.key}: issues ${startAt}/${total}`);
 
           for (const issue of result.issues) {
             const fields = issue.fields || {};
@@ -316,7 +348,7 @@ async function processJiraSync(job) {
               await issueRecord.update(issueData);
             }
 
-            processedItems++;
+            reporter.increment();
           }
 
           startAt += maxResults;
@@ -327,25 +359,35 @@ async function processJiraSync(job) {
       }
     }
 
-    // 6. Mark complete and record last sync time
-    await syncJob.update({
-      status: 'completed',
-      completedAt: new Date(),
-      processedItems,
-    });
-    await credential.update({ lastSyncedAt: new Date() });
+    // 6. Mark complete and record last sync time (don't overwrite if already cancelled)
+    await reporter.flush();
+    await syncJob.reload();
+    if (syncJob.status !== 'cancelled') {
+      await syncJob.update({
+        status: 'completed',
+        completedAt: new Date(),
+        processedItems: reporter._processedItems,
+        currentPhase: null,
+      });
+      await credential.update({ lastSyncedAt: new Date() });
+    }
   } catch (err) {
     // 7. Sanitize error — never include tokens
     const sanitized = (err.message || String(err))
       .replace(decryptedToken, '[REDACTED]')
       .replace(credential.apiToken, '[REDACTED]');
 
-    await syncJob.update({
-      status: 'failed',
-      completedAt: new Date(),
-      error: sanitized.slice(0, 2000),
-      processedItems,
-    });
+    await reporter.flush();
+    await syncJob.reload();
+    if (syncJob.status !== 'cancelled') {
+      await syncJob.update({
+        status: 'failed',
+        completedAt: new Date(),
+        error: sanitized.slice(0, 2000),
+        processedItems: reporter._processedItems,
+        currentPhase: null,
+      });
+    }
 
     throw err;
   }

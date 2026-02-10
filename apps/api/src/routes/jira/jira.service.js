@@ -90,13 +90,13 @@ function buildIssueWhere(filters) {
  * Ensure the WHERE clause is scoped to a credential (via junction table project IDs).
  */
 async function scopeToCredential(where, credentialId) {
-  const linkedProjectIds = await getLinkedProjectIds(credentialId);
+  const linkedProjectIds = (await getLinkedProjectIds(credentialId)).map(Number);
   if (!where.projectId) {
     where.projectId = { [Op.in]: linkedProjectIds };
   } else {
     // Validate the provided projectId belongs to this credential
-    const requestedId = typeof where.projectId === 'object' ? null : where.projectId;
-    if (requestedId && !linkedProjectIds.includes(Number(requestedId))) {
+    const requestedId = typeof where.projectId === 'object' ? null : Number(where.projectId);
+    if (requestedId && !linkedProjectIds.includes(requestedId)) {
       throw Object.assign(new Error('Project not accessible with this credential'), { statusCode: 403 });
     }
   }

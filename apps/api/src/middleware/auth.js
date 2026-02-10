@@ -3,10 +3,10 @@ import { config } from '../config.js';
 
 export function authMiddleware(app) {
   app.addHook('onRequest', async (request, reply) => {
-    // Skip auth for public routes
+    // Skip auth for public routes (but not /me which needs the token)
     const path = request.url.split('?')[0];
     if (
-      path.startsWith('/api/v1/auth') ||
+      (path.startsWith('/api/v1/auth') && path !== '/api/v1/auth/me') ||
       path === '/api/v1/health'
     ) {
       return;

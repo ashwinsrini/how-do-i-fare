@@ -41,6 +41,10 @@ export default (sequelize) => {
       type: DataTypes.STRING,
       allowNull: true,
     },
+    authorName: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     authorId: {
       type: DataTypes.BIGINT,
       allowNull: true,

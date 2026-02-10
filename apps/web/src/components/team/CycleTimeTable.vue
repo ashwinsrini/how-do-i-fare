@@ -28,7 +28,7 @@ function fmtHours(val) {
       <template #body="{ data }">
         <div class="flex items-center gap-2">
           <img v-if="data.authorAvatar" :src="data.authorAvatar" class="w-6 h-6 rounded-full" />
-          <span class="font-medium">{{ data.authorLogin }}</span>
+          <span class="font-medium">{{ data.authorName || data.authorLogin }}</span>
         </div>
       </template>
     </Column>

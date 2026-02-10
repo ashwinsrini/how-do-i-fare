@@ -21,6 +21,10 @@ export default (sequelize) => {
       type: DataTypes.STRING,
       allowNull: true,
     },
+    reviewerName: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     reviewerId: {
       type: DataTypes.BIGINT,
       allowNull: true,

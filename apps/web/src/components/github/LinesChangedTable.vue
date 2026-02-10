@@ -31,7 +31,7 @@ const tableData = computed(() => {
     return {
       authorLogin: item.authorLogin,
       authorAvatar: item.authorAvatar,
-      author: item.authorLogin,
+      author: item.authorName || item.authorLogin,
       linesAdded: added,
       linesDeleted: deleted,
       netChange: net,
@@ -62,7 +62,7 @@ const tableData = computed(() => {
         >
           {{ (row.authorLogin || '?').charAt(0).toUpperCase() }}
         </div>
-        <span class="font-medium">{{ row.authorLogin }}</span>
+        <span class="font-medium">{{ row.author }}</span>
       </div>
     </template>
 

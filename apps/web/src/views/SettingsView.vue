@@ -211,8 +211,20 @@ function getStatusSeverity(status) {
     case 'running': return 'info';
     case 'pending': return 'warn';
     case 'failed': return 'danger';
+    case 'cancelled': return 'warn';
     default: return 'secondary';
   }
+}
+
+function formatDuration(startedAt, completedAt) {
+  if (!startedAt || !completedAt) return '-';
+  const ms = new Date(completedAt).getTime() - new Date(startedAt).getTime();
+  const secs = Math.floor(ms / 1000);
+  if (secs < 60) return `${secs}s`;
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return `${mins}m ${secs % 60}s`;
+  const hrs = Math.floor(mins / 60);
+  return `${hrs}h ${mins % 60}m`;
 }
 </script>
 
@@ -237,7 +249,7 @@ function getStatusSeverity(status) {
               <i class="pi pi-server text-blue-500"></i>
               <div>
                 <span class="font-medium text-surface-800">{{ cred.label }}</span>
-                <p class="text-sm text-surface-400">{{ cred.domain }}.atlassian.net</p>
+                <p class="text-sm text-surface-400">{{ cred.domain }}</p>
               </div>
               <Tag
                 :value="cred.isActive ? 'Active' : 'Inactive'"
@@ -390,36 +402,53 @@ function getStatusSeverity(status) {
           </template>
         </Column>
 
-        <Column field="createdAt" header="Started" sortable>
+        <Column field="startedAt" header="Started" sortable>
           <template #body="{ data }">
-            {{ formatDateTime(data.createdAt) }}
+            {{ formatDateTime(data.startedAt || data.createdAt) }}
           </template>
         </Column>
 
-        <Column field="completedAt" header="Completed" sortable>
+        <Column header="Duration" sortable sortField="completedAt">
           <template #body="{ data }">
-            {{ formatDateTime(data.completedAt) }}
-          </template>
-        </Column>
-
-        <Column field="itemsProcessed" header="Items" sortable>
-          <template #body="{ data }">
-            <span class="font-medium">
-              {{ data.itemsProcessed != null ? data.itemsProcessed : '-' }}
+            <span class="text-sm text-surface-500">
+              {{ formatDuration(data.startedAt, data.completedAt) }}
             </span>
           </template>
         </Column>
 
-        <Column field="errorMessage" header="Error">
+        <Column field="processedItems" header="Progress" sortable>
           <template #body="{ data }">
-            <span v-if="data.errorMessage" class="text-red-600 text-sm">
-              {{ data.errorMessage }}
+            <span class="font-medium">
+              <template v-if="data.totalItems > 0">
+                {{ data.processedItems?.toLocaleString() || 0 }} / {{ data.totalItems.toLocaleString() }}
+              </template>
+              <template v-else-if="data.processedItems > 0">
+                {{ data.processedItems.toLocaleString() }}
+              </template>
+              <template v-else>-</template>
+            </span>
+          </template>
+        </Column>
+
+        <Column field="currentPhase" header="Phase">
+          <template #body="{ data }">
+            <span v-if="data.currentPhase && ['running', 'pending'].includes(data.status)" class="text-sm text-blue-600 truncate block max-w-[200px]" :title="data.currentPhase">
+              {{ data.currentPhase }}
             </span>
             <span v-else class="text-surface-300">-</span>
           </template>
         </Column>
 
-        <Column field="triggeredBy" header="Triggered By" sortable>
+        <Column field="error" header="Error">
+          <template #body="{ data }">
+            <span v-if="data.error" class="text-red-600 text-sm truncate block max-w-[200px]" :title="data.error">
+              {{ data.error }}
+            </span>
+            <span v-else class="text-surface-300">-</span>
+          </template>
+        </Column>
+
+        <Column field="triggeredBy" header="Trigger" sortable>
           <template #body="{ data }">
             <span class="text-sm text-surface-500 capitalize">
               {{ data.triggeredBy || '-' }}

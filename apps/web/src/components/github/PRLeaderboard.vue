@@ -41,7 +41,7 @@ const mergedData = computed(() => {
     return {
       authorLogin: item.authorLogin,
       authorAvatar: item.authorAvatar,
-      author: item.authorLogin,
+      author: item.authorName || item.authorLogin,
       prsRaised: raised,
       prsMerged: merged,
       mergeRate: parseFloat(mergeRate),
@@ -75,7 +75,7 @@ const mergedData = computed(() => {
         >
           {{ (row.authorLogin || '?').charAt(0).toUpperCase() }}
         </div>
-        <span class="font-medium">{{ row.authorLogin }}</span>
+        <span class="font-medium">{{ row.author }}</span>
       </div>
     </template>
 

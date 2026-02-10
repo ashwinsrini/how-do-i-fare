@@ -30,7 +30,11 @@ function getLimiter(pat) {
   return limiterMap.get(key);
 }
 
-const MAX_RETRIES = 1;
+// Rate-limit callback — set by the worker to surface wait times in the sync progress
+let _onRateLimit = null;
+export function setOnRateLimit(fn) { _onRateLimit = fn; }
+
+const MAX_RETRIES = 3;
 
 async function ghFetch(url, pat, retryCount = 0) {
   const limiter = getLimiter(pat);
@@ -58,13 +62,26 @@ async function ghFetch(url, pat, retryCount = 0) {
     }
   }
 
-  // Handle rate limit: sleep until reset and retry once
+  // Handle rate limit: sleep and retry
   if (res.status === 403 || res.status === 429) {
-    const resetEpoch = res.headers.get('x-ratelimit-reset');
-    if (resetEpoch && retryCount < MAX_RETRIES) {
-      const resetMs = parseInt(resetEpoch, 10) * 1000;
-      const waitMs = Math.max(resetMs - Date.now(), 0) + 1000; // +1s buffer
-      console.warn(`[github-client] Rate limited. Waiting ${Math.ceil(waitMs / 1000)}s until reset...`);
+    if (retryCount < MAX_RETRIES) {
+      // Prefer Retry-After header (seconds) for secondary/abuse rate limits
+      const retryAfter = res.headers.get('retry-after');
+      const resetEpoch = res.headers.get('x-ratelimit-reset');
+      let waitMs;
+
+      if (retryAfter) {
+        waitMs = parseInt(retryAfter, 10) * 1000 + 1000;
+      } else if (resetEpoch) {
+        const resetMs = parseInt(resetEpoch, 10) * 1000;
+        // Cap at 120s — if reset is far away it's a secondary limit, not primary exhaustion
+        waitMs = Math.min(Math.max(resetMs - Date.now(), 0) + 1000, 120000);
+      } else {
+        waitMs = 60000; // default 60s backoff
+      }
+
+      console.warn(`[github-client] Rate limited (${res.status}). Waiting ${Math.ceil(waitMs / 1000)}s before retry...`);
+      _onRateLimit?.({ waitMs });
       limiter.tokens = 0;
       await new Promise((r) => setTimeout(r, waitMs));
       limiter.tokens = limiter.maxTokens;
@@ -89,6 +106,15 @@ async function ghFetch(url, pat, retryCount = 0) {
  */
 export async function fetchUser(pat) {
   const { data } = await ghFetch(`${GITHUB_API}/user`, pat);
+  return data;
+}
+
+/**
+ * Fetch a user's public profile by login.
+ * GET /users/{login}
+ */
+export async function fetchUserProfile(pat, login) {
+  const { data } = await ghFetch(`${GITHUB_API}/users/${encodeURIComponent(login)}`, pat);
   return data;
 }
 
@@ -164,12 +190,12 @@ export async function fetchUserOrgRepos(pat) {
  * Fetch pull requests for a repository.
  * GET /repos/{owner}/{repo}/pulls
  */
-export async function fetchPullRequests(pat, owner, repo, state = 'all', page = 1, perPage = 100) {
+export async function fetchPullRequests(pat, owner, repo, state = 'all', page = 1, perPage = 100, sort = 'created') {
   const params = new URLSearchParams({
     state,
     page: String(page),
     per_page: String(perPage),
-    sort: 'created',
+    sort,
     direction: 'desc',
   });
   const { data, headers } = await ghFetch(
