@@ -9,9 +9,7 @@
     "start": "node src/index.js",
     "start:worker": "node src/worker.js",
     "cleanup": "node src/scripts/cleanup-all-data.js",
-    "db:migrate": "npx sequelize-cli db:migrate",
-    "db:migrate:undo": "npx sequelize-cli db:migrate:undo",
-    "db:migrate:undo:all": "npx sequelize-cli db:migrate:undo:all"
+    "db:migrate": "node src/db/migrate.js"
   },
   "dependencies": {
     "@dev-leaderboard/shared": "*",
